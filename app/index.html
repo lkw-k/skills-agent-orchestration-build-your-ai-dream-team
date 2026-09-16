@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="A contributor-friendly overview of project progress and priorities.">
+  <title>Project Pulse</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="body">
+  <main class="dashboard" aria-labelledby="dashboard-title">
+    <header class="dashboard-header">
+      <p class="eyebrow">Team overview</p>
+      <h1 class="dashboard-title" id="dashboard-title">Project Pulse</h1>
+      <p class="dashboard-intro">A quick view of what teams are building, where help is needed, and what is moving forward.</p>
+      <p class="dashboard-meta" id="dashboard-meta" aria-live="polite">Loading project updates...</p>
+    </header>
+    <section aria-labelledby="projects-heading">
+      <h2 id="projects-heading">Projects</h2>
+      <p class="state-message is-loading" id="loading-state" role="status">Loading project updates...</p>
+      <p class="state-message is-error" id="error-state" role="alert" hidden>Project updates could not be loaded. Please try again later.</p>
+      <p class="state-message is-empty" id="empty-state" role="status" hidden>There are no projects to display yet.</p>
+      <div class="project-grid" id="project-grid" aria-label="Project updates" hidden></div>
+    </section>
+  </main>
+  <script>
+    (() => {
+      const grid = document.getElementById('project-grid');
+      const loadingState = document.getElementById('loading-state');
+      const errorState = document.getElementById('error-state');
+      const emptyState = document.getElementById('empty-state');
+      const dashboardMeta = document.getElementById('dashboard-meta');
+      const statusClasses = new Set(['active', 'planning', 'blocked', 'complete']);
+      const priorityClasses = new Set(['high', 'medium', 'low']);
+      const statusClassNames = { active: 'status-active', planning: 'status-planning', blocked: 'status-blocked', complete: 'status-complete' };
+      const priorityClassNames = { high: 'priority-high', medium: 'priority-medium', low: 'priority-low' };
+      const normalizeClassValue = (value, allowedValues) => {
+        const normalized = String(value || '').trim().toLowerCase().replace(/\s+/g, '-');
+        return allowedValues.has(normalized) ? normalized : 'unknown';
+      };
+      const addDetail = (container, label, value, className) => {
+        const detail = document.createElement('div');
+        detail.className = `detail-item ${className}`;
+        const detailLabel = document.createElement('dt');
+        detailLabel.className = 'detail-label';
+        detailLabel.textContent = label;
+        const detailValue = document.createElement('dd');
+        detailValue.className = 'detail-value';
+        detailValue.textContent = value;
+        detail.append(detailLabel, detailValue);
+        container.append(detail);
+      };
+      const createProjectCard = (project) => {
+        const card = document.createElement('article');
+        card.className = 'project-card';
+        const header = document.createElement('header');
+        header.className = 'project-card-header';
+        const name = document.createElement('h3');
+        name.className = 'project-name';
+        name.textContent = project.name;
+        const owner = document.createElement('p');
+        owner.className = 'project-owner';
+        owner.textContent = `Owned by ${project.owner}`;
+        header.append(name, owner);
+        const details = document.createElement('dl');
+        details.className = 'project-details';
+        const statusClass = normalizeClassValue(project.status, statusClasses);
+        const priorityClass = normalizeClassValue(project.priority, priorityClasses);
+        addDetail(details, 'Status', project.status, `status-badge ${statusClassNames[statusClass] || 'status-unknown'}`);
+        addDetail(details, 'Priority', project.priority, `priority-badge ${priorityClassNames[priorityClass] || 'priority-unknown'}`);
+        addDetail(details, 'Recent activity', project.recentActivity, 'activity');
+        const summary = document.createElement('p');
+        summary.className = 'summary';
+        summary.textContent = project.summary;
+        card.append(header, details, summary);
+        return card;
+      };
+      const setState = (state) => {
+        loadingState.hidden = state !== 'loading';
+        errorState.hidden = state !== 'error';
+        emptyState.hidden = state !== 'empty';
+        grid.hidden = state !== 'ready';
+        document.body.classList.toggle('is-loading', state === 'loading');
+      };
+      const loadProjects = async () => {
+        setState('loading');
+        try {
+          const response = await fetch('project-data.json', { cache: 'no-store' });
+          if (!response.ok) throw new Error(`Project data request failed with status ${response.status}`);
+          const data = await response.json();
+          if (!data || !Array.isArray(data.projects)) throw new Error('Project data must contain a projects array');
+          grid.replaceChildren(...data.projects.map(createProjectCard));
+          if (data.projects.length === 0) {
+            dashboardMeta.textContent = 'No projects currently tracked';
+            setState('empty');
+            return;
+          }
+          dashboardMeta.textContent = `${data.projects.length} project${data.projects.length === 1 ? '' : 's'} tracked`;
+          setState('ready');
+        } catch (error) {
+          console.error('Unable to load project data.', error);
+          dashboardMeta.textContent = 'Project updates unavailable';
+          setState('error');
+        }
+      };
+      loadProjects();
+    })();
+  </script>
+</body>
+</html>

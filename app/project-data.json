@@ -1,0 +1,36 @@
+{
+  "projects": [
+    {
+      "name": "Contributor Onboarding",
+      "owner": "Maya Chen",
+      "status": "Active",
+      "recentActivity": "Published the updated local setup checklist.",
+      "priority": "High",
+      "summary": "Help new contributors make their first successful change with clearer setup steps and a guided starter issue."
+    },
+    {
+      "name": "API Reliability",
+      "owner": "Jordan Ellis",
+      "status": "Blocked",
+      "recentActivity": "Waiting for the staging observability credentials.",
+      "priority": "High",
+      "summary": "Reduce noisy failures and make service health easier to understand before the next release cycle."
+    },
+    {
+      "name": "Design System Refresh",
+      "owner": "Priya Nair",
+      "status": "Planning",
+      "recentActivity": "Collected feedback on the first component inventory.",
+      "priority": "Medium",
+      "summary": "Create a shared set of accessible interface patterns so contributors can build consistent features faster."
+    },
+    {
+      "name": "Release Notes Automation",
+      "owner": "Sam Rivera",
+      "status": "Complete",
+      "recentActivity": "Merged the changelog generation workflow.",
+      "priority": "Low",
+      "summary": "Make release communication less manual by gathering meaningful changes directly from merged work."
+    }
+  ]
+}
